@@ -67,7 +67,10 @@ spec:
     providers:
       default: openAI
       openAI:
-        apiKey: OPENAI_API_KEY
+        provider: OpenAI
+        model: "gpt-5-mini"
+        apiKeySecretRef: kagent-openai
+        apiKeySecretKey: OPENAI_API_KEY
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant

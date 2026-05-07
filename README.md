@@ -30,6 +30,38 @@ kubectl get svc -n agentgateway-system  # grab the LoadBalancer IP
 
 Point your AI app at the gateway IP on port 80.
 
+## LLM secret setup
+
+kagent reads the OpenAI API key from a Kubernetes Secret.
+
+1. Export your key (interactive, won't echo):
+
+```bash
+read -s OPENAI_API_KEY && export OPENAI_API_KEY
+```
+
+2. Create the secret:
+
+```bash
+kubectl create secret generic kagent-openai \
+  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
+  -n kagent \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+3. Restart kagent so it picks up the secret:
+
+```bash
+kubectl rollout restart deployment/kagent-controller -n kagent
+```
+
+4. Verify:
+
+```bash
+kubectl get secret -n kagent kagent-openai
+kubectl get pods -n kagent
+```
+
 ## How it works
 
 ```
