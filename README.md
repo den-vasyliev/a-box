@@ -30,6 +30,38 @@ kubectl get svc -n agentgateway-system  # grab the LoadBalancer IP
 
 Point your AI app at the gateway IP on port 80.
 
+## UI access
+
+### Flux UI
+
+```bash
+kubectl port-forward -n flux-system svc/flux-operator 19080:9080
+# open http://localhost:19080/
+```
+
+### Kagent UI
+
+Routed through the gateway:
+
+```bash
+kubectl get svc -n agentgateway-system agentgateway-external
+# open http://<EXTERNAL-IP>/
+```
+
+Or via localhost:
+
+```bash
+kubectl port-forward -n kagent svc/kagent-ui 18080:8080
+# open http://localhost:18080/
+```
+
+### AgentGateway dashboard
+
+```bash
+kubectl port-forward -n agentgateway-system deploy/agentgateway-external 15000:15000
+# open http://localhost:15000/ui
+```
+
 ## How it works
 
 ```
