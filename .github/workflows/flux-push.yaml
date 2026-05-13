@@ -30,18 +30,22 @@ jobs:
 
       - name: Push OCI artifact
         id: push
+        env:
+          REPO: ${{ github.repository }}
         run: |
+          REPO_LC=$(echo "$REPO" | tr '[:upper:]' '[:lower:]')
           TAG=${GITHUB_REF_NAME#v}
-          digest=$(flux push artifact oci://ghcr.io/${{ github.repository }}/releases:${TAG} \
+          digest=$(flux push artifact oci://ghcr.io/${REPO_LC}/releases:${TAG} \
             --path="./releases" \
             --source="${{ github.repositoryUrl }}" \
             --revision="${{ github.ref_name }}@sha1:${{ github.sha }}" \
             --output json | jq -r '.digest')
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "digest=${digest}" >> $GITHUB_OUTPUT
+          echo "repo=${REPO_LC}" >> $GITHUB_OUTPUT
 
       - name: Tag artifact
         run: |
           flux tag artifact \
-            oci://ghcr.io/${{ github.repository }}/releases:${{ steps.push.outputs.tag }}@${{ steps.push.outputs.digest }} \
+            oci://ghcr.io/${{ steps.push.outputs.repo }}/releases:${{ steps.push.outputs.tag }}@${{ steps.push.outputs.digest }} \
             --tag latest
