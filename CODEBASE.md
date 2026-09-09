@@ -33,11 +33,20 @@ A single `tofu apply` produces a running cluster:
 
 ```
 KinD cluster
-  → helm: flux-operator             (bootstrap/)
-  → helm: flux-instance             (wait=true)
+  → module: flux-operator-bootstrap (bootstrap/, upstream controlplaneio-fluxcd module)
+      → in-cluster Job: helm install flux-operator
+      → apply FluxInstance (create-if-missing), wait for Ready
   → kubectl_manifest: RSIP          (polls ghcr.io/.../releases for semver tags)
   → kubectl_manifest: ResourceSet   (creates OCIRepository + 2 Kustomizations)
 ```
+
+Flux is installed by the upstream
+[`controlplaneio-fluxcd/flux-operator-bootstrap/kubernetes`](https://github.com/controlplaneio-fluxcd/terraform-kubernetes-flux-operator-bootstrap)
+module (v0.8.0). It applies resources with create-if-missing semantics and hands
+off to Flux once Flux labels them, so re-applies never fight reconciliation. The
+`FluxInstance` manifest lives at `bootstrap/flux-instance.yaml`.
+
+Needs OpenTofu >= 1.11 and helm/kubernetes providers >= 3.0.
 
 The ResourceSet creates two Flux Kustomizations:
 

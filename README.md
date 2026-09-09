@@ -36,7 +36,7 @@ Point your AI app at the gateway IP on port 80.
 make run  →  scripts/setup.sh
   → tofu apply (bootstrap/)
       → KinD cluster
-      → Flux Operator + FluxInstance
+      → Flux Operator + FluxInstance   via the upstream flux-operator-bootstrap module
       → ResourceSetInputProvider   polls oci://ghcr.io/den-vasyliev/abox/releases
       → ResourceSet                creates OCIRepository + 2 Kustomizations
           → releases/crds/    gateway-api-crds, agentgateway-crds, kagent-crds
@@ -59,6 +59,7 @@ make push   # bumps patch version, tags, pushes → CI publishes OCI artifact �
 | Path | Purpose |
 |---|---|
 | `bootstrap/` | OpenTofu: KinD + Flux bootstrap (operator, instance, RSIP, ResourceSet) |
+| `bootstrap/flux-instance.yaml` | `FluxInstance` applied by the bootstrap Job |
 | `releases/crds/` | CRD HelmReleases: gateway-api, agentgateway, kagent |
 | `releases/` | App HelmReleases + Gateway + HTTPRoutes |
 | `scripts/setup.sh` | Full setup script (`make run`) |

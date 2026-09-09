@@ -15,3 +15,9 @@ variable "releases_version" {
   type        = string
   default     = "0.1.0"
 }
+
+variable "bootstrap_revision" {
+  description = "Bump to force the flux-operator bootstrap Job to re-run without an input change"
+  type        = number
+  default     = 1
+}
