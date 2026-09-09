@@ -15,6 +15,9 @@ module "flux_operator" {
 
   gitops_resources = {
     instance_yaml = file("${path.module}/flux-instance.yaml")
+    operator_chart = {
+      version = var.flux_operator_version
+    }
   }
 }
 
