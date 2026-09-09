@@ -1,23 +1,26 @@
-# Gateway API CRDs, standard channel, v1.6.2.
+# Gateway API CRDs, experimental channel, v1.6.2.
 #
 # This was a HelmRelease of ghcr.io/den-vasyliev/gateway-api-crds, but that
 # chart contained nothing except the two objects below, pinned to v1.4.0. It
 # only ever had a 1.4.0 tag published, so the version could not be moved
 # without republishing it. Inlining puts version and channel under our control.
 #
-# 1.4.0 had no TLSRoute CRD in the standard channel at all, which is what broke
-# agentgateway: its controller watches TLSRoute, the informer never synced and
-# the pod never went ready --
+# The experimental channel is required here, not a preference. agentgateway's
+# informers are typed to v1alpha2 for both TLSRoute and TCPRoute and do not
+# negotiate a served version via discovery:
 #
 #   watch error in cluster: failed to list *v1alpha2.TLSRoute:
 #   the server could not find the requested resource
 #
-# TLSRoute, TCPRoute, UDPRoute and ListenerSet all moved into the standard
-# channel by 1.6.x, so stable is enough. Note that standard serves TLSRoute at
-# v1 only (v1alpha2 is present but served: false); experimental is the channel
-# that still serves v1alpha2. If the controller turns out to pin v1alpha2
-# rather than negotiating via discovery, switch the two paths below to
-# ./config/crd/experimental.
+# 1.4.0 standard had no TLSRoute CRD at all. 1.6.x standard does ship it, but
+# serves v1 only -- v1alpha2 is present with served: false -- so the API server
+# still 404s and the informer still hangs. Only experimental serves v1alpha2
+# alongside v1.
+#
+# This is not a stability trade for the resources actually in use: experimental
+# is a superset of standard, and Gateway, HTTPRoute, GRPCRoute and
+# ReferenceGrant are the same GA v1 types in both channels. It adds the alpha
+# CRDs and some extra optional fields.
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
@@ -30,7 +33,7 @@ spec:
     tag: v1.6.2
   ignore: |
     /*
-    !/config/crd/standard/
+    !/config/crd/experimental/
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -42,6 +45,6 @@ spec:
   sourceRef:
     kind: GitRepository
     name: gateway-api
-  path: ./config/crd/standard
+  path: ./config/crd/experimental
   prune: true
   wait: true
