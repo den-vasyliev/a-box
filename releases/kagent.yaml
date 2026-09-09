@@ -22,6 +22,30 @@ metadata:
 spec:
   interval: 1h
   releaseName: kagent
+  # Flux appends the OCIRepository artifact digest to the chart version as
+  # semver build metadata, so Helm sees 0.10.1+dc7fc6109072. kagent's Chart.yaml
+  # has no appVersion, so app.kubernetes.io/version falls back to .Chart.Version
+  # and inherits the '+', which Kubernetes rejects as a label value:
+  #
+  #   ServiceAccount "kagent-controller" is invalid: metadata.labels:
+  #   Invalid value: "0.10.1+dc7fc6109072"
+  #
+  # Subcharts are unaffected -- they carry their own Chart.Version -- which is
+  # why tools, kmcp and grafana-mcp installed while the controller, UI,
+  # postgresql, ModelConfig and RemoteMCPServer did not. All 21 broken objects
+  # carry app.kubernetes.io/name=kagent, so rewrite the label on those.
+  #
+  # This is not visible in a local `helm template`: the build metadata is added
+  # by Flux, not by the chart.
+  postRenderers:
+  - kustomize:
+      patches:
+      - patch: |
+          - op: add
+            path: /metadata/labels/app.kubernetes.io~1version
+            value: "0.10.1"
+        target:
+          labelSelector: app.kubernetes.io/name=kagent
   dependsOn:
     - name: kagent-crds
       namespace: kagent
