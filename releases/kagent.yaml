@@ -56,7 +56,24 @@ spec:
   install:
     createNamespace: true
   values:
-    # Image tags are left unset so every component tracks the chart version.
+    # Image tags must be set explicitly. Left unset, the chart falls back to
+    # .Chart.Version for the image reference, which Flux has made
+    # 0.10.1+dc7fc6109072 -- and '+' is not legal in a tag:
+    #
+    #   Failed to apply default image tag
+    #   "ghcr.io/kagent-dev/kagent/controller:0.10.1+dc7fc6109072":
+    #   invalid reference format ... InvalidImageName
+    #
+    # The chart sanitises the '+' for helm.sh/chart but not for the image tags
+    # or app.kubernetes.io/version, which the postRenderer above handles.
+    # Postgres and the subcharts pin their own images and are unaffected.
+    tag: "0.10.1"
+    controller:
+      image:
+        tag: "0.10.1"
+    ui:
+      image:
+        tag: "0.10.1"
     # 0.10.x drops the per-tool toggles that used to disable querydoc, so the
     # kagent-tools subchart is left at its default.
     istio-agent:
