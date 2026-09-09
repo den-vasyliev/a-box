@@ -10,9 +10,12 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1h
+  # Held at v2.2.1: the v2.2.2 and v2.2.3 charts reference
+  # cr.agentgateway.dev/controller:<chart version>, but that registry only ever
+  # published v2.2.0 and v2.2.1, so newer charts fail with ErrImagePull.
   url: oci://ghcr.io/kgateway-dev/charts/agentgateway
   ref:
-    tag: "v2.2.3"
+    tag: "v2.2.1"
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease

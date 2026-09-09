@@ -8,7 +8,7 @@
 
 | Component | Role |
 |---|---|
-| **agentgateway v2.2.3** | AI-aware API gateway (Gateway API–native, MCP-aware) |
+| **agentgateway v2.2.1** | AI-aware API gateway (Gateway API–native, MCP-aware) |
 | **kagent 0.10.1** | Kubernetes-native AI agent framework |
 | **Qdrant 1.19.1** | Vector database for retrieval |
 | **Arize Phoenix 12.0.10** | LLM observability — tracing, evals, prompt playground |
