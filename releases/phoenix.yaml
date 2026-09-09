@@ -32,3 +32,19 @@ spec:
     # The cluster routes through the agentgateway Gateway, not an Ingress.
     ingress:
       enabled: false
+    # The chart's startup probe allows 31s (periodSeconds 1 x failureThreshold
+    # 30). Phoenix runs Alembic migrations against Postgres on first boot, which
+    # takes longer than that on KinD, so the probe kills the container before it
+    # ever binds :6006 and it restarts forever:
+    #
+    #   Startup probe failed: dial tcp 10.244.2.10:6006: connect: connection refused
+    #   Container phoenix failed startup probe, will be restarted
+    #
+    # Widen the budget to 10 minutes. Liveness and readiness are left alone --
+    # they only start counting once the startup probe succeeds.
+    healthChecks:
+      startupProbe:
+        enabled: true
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        failureThreshold: 120
