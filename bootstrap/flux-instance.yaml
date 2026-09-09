@@ -1,0 +1,27 @@
+# FluxInstance applied by the flux-operator-bootstrap Job with create-if-missing
+# semantics. Equivalent to what the flux-instance Helm chart used to render.
+#
+# .spec.sync is intentionally unset: the cluster does not sync from Git. The
+# ResourceSetInputProvider + ResourceSet in flux.tf drive an OCIRepository that
+# tracks the latest semver tag of the releases artifact instead.
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    version: "2.x"
+    registry: ghcr.io/fluxcd
+    artifact: oci://ghcr.io/controlplaneio-fluxcd/flux-operator-manifests:latest
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: kubernetes
+    domain: cluster.local
+    multitenant: false
+    networkPolicy: true
+    tenantDefaultServiceAccount: default

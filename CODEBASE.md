@@ -17,9 +17,11 @@ abox is a **local AI infrastructure sandbox**. A single `make run` provisions a 
 | Cluster | KinD | latest |
 | GitOps operator | Flux CD (Flux Operator + FluxInstance) | 2.x |
 | Infrastructure as code | OpenTofu | latest |
-| AI gateway | agentgateway | v2.2.1 |
-| Agent runtime | kagent | 0.7.23 (pinned) |
+| AI gateway | agentgateway | v2.2.3 |
+| Agent runtime | kagent | 0.10.1 |
 | Gateway API | gateway-api-crds | 1.4.0 |
+| Vector database | qdrant | 1.19.1 |
+| LLM observability | Arize Phoenix | 12.0.10 |
 | OCI artifact store | GHCR | — |
 | CI | GitHub Actions | — |
 
@@ -33,11 +35,20 @@ A single `tofu apply` produces a running cluster:
 
 ```
 KinD cluster
-  → helm: flux-operator             (bootstrap/)
-  → helm: flux-instance             (wait=true)
+  → module: flux-operator-bootstrap (bootstrap/, upstream controlplaneio-fluxcd module)
+      → in-cluster Job: helm install flux-operator
+      → apply FluxInstance (create-if-missing), wait for Ready
   → kubectl_manifest: RSIP          (polls ghcr.io/.../releases for semver tags)
   → kubectl_manifest: ResourceSet   (creates OCIRepository + 2 Kustomizations)
 ```
+
+Flux is installed by the upstream
+[`controlplaneio-fluxcd/flux-operator-bootstrap/kubernetes`](https://github.com/controlplaneio-fluxcd/terraform-kubernetes-flux-operator-bootstrap)
+module (v0.8.0). It applies resources with create-if-missing semantics and hands
+off to Flux once Flux labels them, so re-applies never fight reconciliation. The
+`FluxInstance` manifest lives at `bootstrap/flux-instance.yaml`.
+
+Needs OpenTofu >= 1.11 and helm/kubernetes providers >= 3.0.
 
 The ResourceSet creates two Flux Kustomizations:
 

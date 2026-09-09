@@ -25,7 +25,7 @@ cd abox
 make run   # provisions a full local cluster
 ```
 
-Requirements: Docker, macOS or Linux. `make run` installs OpenTofu and k9s automatically.
+Requirements: Docker, macOS or Linux. `make run` installs OpenTofu and k9s automatically. The bootstrap needs **OpenTofu >= 1.11** (the flux-operator-bootstrap module uses write-only attributes).
 
 ## Making changes
 
@@ -39,6 +39,12 @@ Requirements: Docker, macOS or Linux. `make run` installs OpenTofu and k9s autom
 ### Changing bootstrap (OpenTofu)
 
 Modify files in `bootstrap/`. Test with `make apply`. Document any new design decisions in `CLAUDE.md` under "Key design decisions".
+
+Flux itself is installed by the upstream
+[`controlplaneio-fluxcd/flux-operator-bootstrap/kubernetes`](https://github.com/controlplaneio-fluxcd/terraform-kubernetes-flux-operator-bootstrap)
+module. Change the `FluxInstance` in `bootstrap/flux-instance.yaml`, not in Helm values.
+Bump `var.bootstrap_revision` to force the bootstrap Job to re-run when no input changed,
+and set `debug_on_failure = true` on the module to relay the Job logs into the apply output.
 
 ### Changing the release pipeline
 

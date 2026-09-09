@@ -1,39 +1,33 @@
 # ==========================================
-# Bootstrap Flux Operator
+# Bootstrap Flux Operator + FluxInstance
 # ==========================================
-resource "helm_release" "flux_operator" {
+# The bootstrap module runs a Job in the cluster that installs the
+# flux-operator Helm chart, applies the FluxInstance with create-if-missing
+# semantics and waits for it to become Ready. Resources adopted by Flux are
+# left alone on subsequent applies, so Terraform never fights reconciliation.
+module "flux_operator" {
+  source  = "controlplaneio-fluxcd/flux-operator-bootstrap/kubernetes"
+  version = "0.8.0"
+
   depends_on = [kind_cluster.this]
 
-  name             = "flux-operator"
-  namespace        = "flux-system"
-  repository       = "oci://ghcr.io/controlplaneio-fluxcd/charts"
-  chart            = "flux-operator"
-  create_namespace = true
-}
+  revision = var.bootstrap_revision
 
-# ==========================================
-# Bootstrap Flux Instance
-# ==========================================
-resource "helm_release" "flux_instance" {
-  depends_on = [helm_release.flux_operator]
-
-  name       = "flux-instance"
-  namespace  = "flux-system"
-  repository = "oci://ghcr.io/controlplaneio-fluxcd/charts"
-  chart      = "flux-instance"
-  wait       = true
-
-  set {
-    name  = "distribution.version"
-    value = "=2.x"
+  gitops_resources = {
+    instance_yaml = file("${path.module}/flux-instance.yaml")
+    operator_chart = {
+      version = var.flux_operator_version
+    }
   }
 }
 
 # ==========================================
 # Bootstrap Flux ResourceSetInputProvider
 # ==========================================
+# Applied after the module because the ResourceSetInputProvider and ResourceSet
+# CRDs ship with the flux-operator chart, which the bootstrap Job installs.
 resource "kubectl_manifest" "rsip" {
-  depends_on = [helm_release.flux_instance]
+  depends_on = [module.flux_operator]
 
   yaml_body = <<-YAML
     apiVersion: fluxcd.controlplane.io/v1
