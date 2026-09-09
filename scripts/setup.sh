@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG=/tmp/setup.log
 exec > >(tee -a "$LOG") 2>&1
 
@@ -12,6 +13,17 @@ log "=== k8sdiy-env setup start ==="
 log "Installing OpenTofu..."
 curl -fsSL https://get.opentofu.org/install-opentofu.sh | sh -s -- --install-method standalone
 log "OpenTofu installed"
+
+# Install kind CLI. The cluster itself is created by the tehcyx/kind Terraform
+# provider, which embeds kind, but the CLI is needed for node-level work:
+# kind get nodes, kind load docker-image, kind export logs.
+log "Installing kind..."
+KIND_VERSION=v0.33.0
+KIND_ARCH=$(dpkg --print-architecture)
+curl -fsSLo /tmp/kind "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-${KIND_ARCH}"
+sudo install -m 0755 /tmp/kind /usr/local/bin/kind
+rm -f /tmp/kind
+log "kind installed ($(kind version))"
 
 # Install K9s
 log "Installing K9s..."
@@ -27,6 +39,11 @@ alias tf=tofu
 alias k=kubectl
 EOF
 
+# Repair nested-Docker egress before anything tries to pull an image. See
+# scripts/fix-egress.sh for why Codespaces needs this.
+log "Checking Docker egress..."
+bash "${SCRIPT_DIR}/fix-egress.sh"
+
 # Initialize Tofu
 log "Running tofu init..."
 cd bootstrap
@@ -36,6 +53,11 @@ log "tofu init done"
 log "Running tofu apply..."
 tofu apply -auto-approve
 log "tofu apply done"
+
+# The bootstrap Job and every Flux-managed image are pulled by kubelet on the
+# kind nodes, so confirm the nodes can actually reach a registry.
+bash "${SCRIPT_DIR}/fix-egress.sh" verify abox \
+  || log "WARNING: nodes cannot reach a registry, Flux will not reconcile"
 
 export KUBECONFIG=~/.kube/config
 
