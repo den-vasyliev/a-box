@@ -19,7 +19,7 @@ abox is a **local AI infrastructure sandbox**. A single `make run` provisions a 
 | Infrastructure as code | OpenTofu | latest |
 | AI gateway | agentgateway | v2.2.3 |
 | Agent runtime | kagent | 0.10.1 |
-| Gateway API | gateway-api-crds | 1.4.0 |
+| Gateway API | gateway-api (standard channel) | v1.6.2 |
 | Vector database | qdrant | 1.19.1 |
 | LLM observability | Arize Phoenix | 12.0.10 |
 | OCI artifact store | GHCR | — |

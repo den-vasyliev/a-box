@@ -1,23 +1,47 @@
+# Gateway API CRDs, standard channel, v1.6.2.
+#
+# This was a HelmRelease of ghcr.io/den-vasyliev/gateway-api-crds, but that
+# chart contained nothing except the two objects below, pinned to v1.4.0. It
+# only ever had a 1.4.0 tag published, so the version could not be moved
+# without republishing it. Inlining puts version and channel under our control.
+#
+# 1.4.0 had no TLSRoute CRD in the standard channel at all, which is what broke
+# agentgateway: its controller watches TLSRoute, the informer never synced and
+# the pod never went ready --
+#
+#   watch error in cluster: failed to list *v1alpha2.TLSRoute:
+#   the server could not find the requested resource
+#
+# TLSRoute, TCPRoute, UDPRoute and ListenerSet all moved into the standard
+# channel by 1.6.x, so stable is enough. Note that standard serves TLSRoute at
+# v1 only (v1alpha2 is present but served: false); experimental is the channel
+# that still serves v1alpha2. If the controller turns out to pin v1alpha2
+# rather than negotiating via discovery, switch the two paths below to
+# ./config/crd/experimental.
 apiVersion: source.toolkit.fluxcd.io/v1
-kind: OCIRepository
+kind: GitRepository
 metadata:
-  name: gateway-api-crds
+  name: gateway-api
   namespace: flux-system
 spec:
   interval: 1h
-  url: oci://ghcr.io/den-vasyliev/gateway-api-crds
+  url: https://github.com/kubernetes-sigs/gateway-api
   ref:
-    tag: "1.4.0"
+    tag: v1.6.2
+  ignore: |
+    /*
+    !/config/crd/standard/
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2
-kind: HelmRelease
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
 metadata:
   name: gateway-api-crds
   namespace: flux-system
 spec:
   interval: 1h
-  chartRef:
-    kind: OCIRepository
-    name: gateway-api-crds
-  install:
-    crds: CreateReplace
+  sourceRef:
+    kind: GitRepository
+    name: gateway-api
+  path: ./config/crd/standard
+  prune: true
+  wait: true
