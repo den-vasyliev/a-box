@@ -31,9 +31,14 @@ spec:
   url: https://github.com/kubernetes-sigs/gateway-api
   ref:
     tag: v1.6.2
+  # Both channels are fetched even though only one is applied. The artifact is
+  # keyed on the git revision, so narrowing this to a single channel means a
+  # channel switch changes nothing source-controller notices: it keeps the old
+  # artifact and the Kustomization below fails with "kustomization path not
+  # found". Keeping /config/crd whole makes the path the only thing that moves.
   ignore: |
     /*
-    !/config/crd/experimental/
+    !/config/crd/
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
