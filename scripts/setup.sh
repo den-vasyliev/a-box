@@ -44,7 +44,7 @@ cd ..
 # Install cloud-provider-kind (LoadBalancer support)
 log "Installing cloud-provider-kind..."
 ARCH=$(dpkg --print-architecture)
-wget -q "https://github.com/kubernetes-sigs/cloud-provider-kind/releases/download/v0.6.0/cloud-provider-kind_0.6.0_linux_${ARCH}.tar.gz" \
+wget -q "https://github.com/kubernetes-sigs/cloud-provider-kind/releases/download/v0.11.1/cloud-provider-kind_0.11.1_linux_${ARCH}.tar.gz" \
   -O /tmp/cloud-provider-kind.tar.gz
 tar -xzf /tmp/cloud-provider-kind.tar.gz -C /tmp cloud-provider-kind
 rm /tmp/cloud-provider-kind.tar.gz
